@@ -19,7 +19,7 @@ class Functions {
         
         PrivateVariables.orServers.forEach { server in
             session.dataTask(with: server.url) { data, response, error in
-                let message = (error != nil) ? "사용할 수 없어요.." : "작동중이에요!"
+                let message = (error != nil) ? "사용 불가능" : "사용가능"
                 results.append("\(server.alias)님의 서버는 지금 \(message)")
                 if results.count == 4 { callback(results) }
             }.resume()

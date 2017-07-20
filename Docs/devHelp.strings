@@ -6,4 +6,8 @@
 `dev.version` - 커밋의 시간을 출력해요!
 
 `dev.info` - 현재 돌리고 있는 서버의 정보를 출력해요.
+
+`dev.reaction` - 리액션 테스트를 진행하고 있어요!
+
+`dev.embed` - Embed 테스트를 진행하고 있어요!
 ```

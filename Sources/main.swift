@@ -9,7 +9,6 @@ let version = dateFormatter.string(from: Date())
 
 let PrivateVariables = SecureElements()
 let Prefix = "s!"
-
 let client = Sword(token: PrivateVariables.token)
 let messages = Texts()
 let cache = Caches()
@@ -24,7 +23,7 @@ client.on(.ready) { [unowned client] _ in
                     "실행 시간은 \(version), \(Sysctl.osType) \(Sysctl.machine) 기반의 \(Sysctl.hostName)에서 기동중이에요!\n\n"
     
     DispatchQueue.main.asyncAfter(deadline: client.deadline(of: 1.0)) {
-//        client.getChannel(for: PrivateVariables.meuChatID!)?.send(message)
+        client.getChannel(for: PrivateVariables.meuChatID!)?.send(message)
     }
 }
 
@@ -39,6 +38,16 @@ client.on(.messageCreate) { data in
         }
         
         if let _ = msg.author?.isBot { return }
+        
+        if msg.content.contains("히토미") || msg.content.lowercased().contains("hitomi") {
+            msg.add(reaction: "\\:hitomi:337513243859746816") { print($0 as Any) }
+        }
+        
+        if msg.content.characters.contains("미"), msg.content.characters.contains("쿠")
+            || msg.content.lowercased().contains("miku")
+            || msg.content.contains("39") {
+            msg.add(reaction: "\\:nadenade:337525787907588097") { print($0 as Any) }
+        }
         
         if msg.content.contains("| -serin --d ") {
             if  let original = msg.content.components(separatedBy: "| -serin --d ").first,
@@ -103,10 +112,9 @@ client.on(.messageCreate) { data in
             if content.hasPrefix("*"), cache.isChangingGame {
                 (cache.changeGame as? Message)?.delete()
                 client.editStatus(to: "Online", playing: msg.content.components(separatedBy: "*").last)
-                msg.add(reaction: ":white_check_mark:")
+                msg.add(reaction: "✅")
                 cache.changeGame = nil
                 cache.isChangingGame = false
-                msg.reply(with: Texts.chooseOne(from: messages.gameChanged))
             }
             
             // 레벨테이블 보기
@@ -126,6 +134,12 @@ client.on(.messageCreate) { data in
                                 "**Total RAM**: \(Sysctl.memSize / 1024 / 1024)MB\n" +
                                 "**Kernel**: \(Sysctl.version)\n"
                 msg.channel.send(message)
+            }
+            if content == prefix + "reaction" {
+                msg.add(reaction: "\\:meu:337513217485963264") { print($0 as Any) }
+                msg.add(reaction: "\\:nadenade:337525787907588097") { print($0 as Any) }
+                msg.add(reaction: "\\:hitomi:337513243859746816") { print($0 as Any) }
+                msg.add(reaction: "✅") { print($0 as Any) }
             }
         }
     }

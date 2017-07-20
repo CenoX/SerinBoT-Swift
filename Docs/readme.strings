@@ -12,7 +12,7 @@
 
 `s!help [type]` 으로 좀 더 상세한 명령어를 확인할 수 있어요!
 
-**common** - `help` `uwu` `joke` `orvalidation` `say` `dsay`
+**common** - `| -serin --d 시간(초)` `help` `uwu` `joke` `orvalidation` `say` `dsay`
 
 **papa** - `changegame` `leveltable`
 

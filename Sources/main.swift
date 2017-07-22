@@ -29,7 +29,7 @@ func continuousAction() {
 
 client.disconnect()
 
-client.on(.ready) { [unowned client] _ in
+client.on(.ready) { [client] _ in
     print("Ready to launch. triggering messages")
     
     let message =   "<@\(PrivateVariables.cenoxID)>, 기동을 완료했어요 아빠!\n" +

@@ -14,6 +14,56 @@ struct Texts {
         return arr[Int(arc4random_uniform(UInt32(arr.count)))]
     }
     
+    let commonHelp =
+    "```js\n" +
+    "== 기본 명령어 ==\n\n" +
+    "`할말` \"| -serin --d\" `시간(초)` 메세지를 보낸 후, d 뒤에 정의한 시간 뒤에 메세지를 지워요.\n\n" +
+    "`help` - 이 메세지를 보내요!\n\n" +
+    "`uwu` - uwu\n\n" +
+    "`joke` - 어디에서 많이 들어봤을 법한 대사들로 농담을 해요!\n\n" +
+    "`orvalidation` - 오버래피드의 결제검증 서버의 상태를 확인할 수 있어요!\n\n" +
+    "`say` - 입력된 말을 따라 말해요!\n\n" +
+    "`dsay` - 입력된 말을 따라 말하지만, 적으셨던 걸 지워드려요!\n\n" +
+    "```"
+    
+    let devHelp =
+    "개발 전용 명령어는 기본 Prefix인 `s!`뒤에 `dev.`를 붙여 실행할 수 있어요!\n\n" +
+    "```js\n" +
+    "== 개발 전용 명령어 ==\n\n\n" +
+    "`dev.version` - 커밋의 시간을 출력해요!\n\n" +
+    "`dev.info` - 현재 돌리고 있는 서버의 정보를 출력해요.\n\n" +
+    "`dev.reaction` - 리액션 테스트를 진행하고 있어요!\n\n" +
+    "`dev.embed` - Embed 테스트를 진행하고 있어요!\n\n" +
+    "```"
+
+    let papaHelp =
+    "아빠 전용 명령어는 기본 Prefix인 `s!`뒤에 `papa.`를 붙여 실행할 수 있어요!\n\n" +
+    "```js\n" +
+    "== 아빠전용 명령어 ==\n\n\n" +
+    "`papa.changegame` - 플레이 중 메세지를 변경해요! 아빠만 쓸 수 있어요!\n\n" +
+    "`papa.leveltable` - 레벨테이블 링크를 알려줘요!\n\n" +
+    "`papa.timerInvalidate` - 아빠 서버의 상태 확인을 중단해요.\n\n" +
+    "`papa.timerReset 시간(초)` - 아빠 서버의 상태를 몇초마다 확인할 것인지 설정해요!\n\n" +
+    "`changePrefix` - 저를 호출하는 명령어를 변경해요!\n\n" +
+    "`resetPrefix` - 저를 호출하는 명령어를 초기 설정인 `s!`로 되돌려요.\n\n" +
+    "```\n\n\n" +
+    "호출명령어는 `UserDefaults`에 **prefix**라는 키로 저장되요!"
+
+    let readme =
+    "```js\n" +
+    "` Serin BoT `\n" +
+    "```\n\n" +
+    "안녕하세요! Serin 이라고 해요!\n" +
+    "이름으로 쓰인 `Serin`은 개발자의 2D 따님 이름을 따왔대요.\n\n" +
+    "사용하기에 앞서, 모든 명령어 앞에는 `s!` 혹은 변경한 `Prefix`가 붙으니 참고해주세요!\n" +
+    "혹시나 설정한 Prefix 를 잊어버렸다면, `@Serin BoT -currentPrefix` 명령어로 확인할 수 있어요!\n\n" +
+    "비공개된 문자열 혹은 이모티콘에 대해 자동으로 리액션을 추가해주기도 해요.\n\n" +
+    "`s!help [type]` 으로 좀 더 상세한 명령어를 확인할 수 있어요!\n\n\n" +
+    "**common** - `| -serin --d 시간(초)` `help` `uwu` `joke` `orvalidation` `say` `dsay`\n\n" +
+    "**papa** - `changegame` `leveltable` `timerInvalidate` `timerReset 시간` `changePrefix` `resetPrefix`\n\n" +
+    "**dev** - `version` `info` `reaction`"
+
+    
     let jokes = [
     "안녕하세요? 세리아 키르민이에요.",
     "왕위를 물려받는겁니다, 아버지",

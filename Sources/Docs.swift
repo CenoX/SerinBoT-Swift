@@ -30,11 +30,11 @@ enum HelpIndex: String {
     func docs() -> String {
         switch self {
         case .common:
-            return Documents.shared.common
+            return Documents.shared.commonHelp
         case .dev:
-            return Documents.shared.dev
+            return Documents.shared.devHelp
         case .papa:
-            return Documents.shared.papa
+            return Documents.shared.papaHelp
         default:
             return Documents.shared.readme
         }
@@ -42,14 +42,5 @@ enum HelpIndex: String {
 }
 
 class Documents {
-    
-    static let shared = Documents()
-    
-    let readme = try! String(contentsOf: Bundle.main.url(forResource: "readme", withExtension: "strings", subdirectory: "Docs")!)
-    
-    let common = try! String(contentsOf: Bundle.main.url(forResource: "commonHelp", withExtension: "strings", subdirectory: "Docs")!)
-    
-    let dev = try! String(contentsOf: Bundle.main.url(forResource: "devHelp", withExtension: "strings", subdirectory: "Docs")!)
-    
-    let papa = try! String(contentsOf: Bundle.main.url(forResource: "papaHelp", withExtension: "strings", subdirectory: "Docs")!)
+    static let shared = Texts()
 }

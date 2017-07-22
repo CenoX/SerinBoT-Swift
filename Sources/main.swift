@@ -194,7 +194,7 @@ client.on(.messageCreate) { data in
         if content.hasPrefix("s!dev.") {
             let prefix = Prefix + "dev."
             if content == prefix + "version" { msg.channel.send(version) }
-            if content == prefix + "reaction" { reactions.forEach { msg.add(reaction: $0) {print($0 as Any)} } }
+            if content == prefix + "reaction" { PrivateVariables.reactions.forEach { msg.add(reaction: $0) {print($0 as Any)} } }
             
             if content == prefix + "info" {
                 msg.channel.send(

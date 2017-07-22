@@ -16,6 +16,7 @@ let cache = Caches()
 let function = Functions()
 let document = Documents.shared
 var timer = Timer()
+let process = ProcessInfo()
 
 func continuousAction() {
     print("continuousAction")
@@ -33,7 +34,7 @@ client.on(.ready) { [client] _ in
     print("Ready to launch. triggering messages")
     
     let message =   "<@\(PrivateVariables.cenoxID)>, 기동을 완료했어요 아빠!\n" +
-                    "실행 시간은 \(version), \(ProcessInfo().hostName)에서 기동중이에요!\n\n"
+                    "실행 시간은 \(version), \(process.hostName)에서 기동중이에요!\n\n"
     
     DispatchQueue.main.asyncAfter(deadline: client.deadline(of: 1.0)) {
         client.getChannel(for: PrivateVariables.meuChatID!)?.send(message)

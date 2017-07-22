@@ -17,4 +17,6 @@ class Caches {
             isChangingGame = true
         }
     }
+    var changePrefix = false
+    var prefixCache: String?
 }

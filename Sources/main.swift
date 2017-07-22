@@ -8,11 +8,25 @@ dateFormatter.dateFormat = "yyyy-MM-dd HH:MM:SS Z"
 let version = dateFormatter.string(from: Date())
 
 let PrivateVariables = SecureElements()
-let Prefix = "s!"
+var Prefix = (UserDefaults.standard.string(forKey: "prefix") != nil) ? UserDefaults.standard.string(forKey: "prefix")! : "s!"
+
 let client = Sword(token: PrivateVariables.token)
+
 let messages = Texts()
 let cache = Caches()
+let function = Functions()
 let document = Documents.shared
+var timer = Timer()
+
+func continuousAction() {
+    print("continuousAction")
+    function.checkCenoXServer {
+        if $0 { client.getChannel(for: PrivateVariables.meuChatID!)?.send(
+            "<@\(PrivateVariables.cenoxID)>, 서버를 확인하는 중에 오류가 발생했어! 한번 확인해봐야 할 것 같아"
+            )
+        }
+    }
+}
 
 client.disconnect()
 
@@ -24,6 +38,13 @@ client.on(.ready) { [unowned client] _ in
     
     DispatchQueue.main.asyncAfter(deadline: client.deadline(of: 1.0)) {
         client.getChannel(for: PrivateVariables.meuChatID!)?.send(message)
+        
+        if #available(OSX 10.12, *) {
+            continuousAction()
+            timer = Timer.scheduledTimer(withTimeInterval: 600, repeats: true) { _ in continuousAction() }
+        } else {
+            client.getChannel(for: PrivateVariables.meuChatID!)?.send("<@\(PrivateVariables.cenoxID)>, 실행환경의 제약으로 인해, 서버상태를 확인할 수 없어. 미안해!")
+        }
     }
 }
 
@@ -32,12 +53,11 @@ client.on(.messageCreate) { data in
         let content = msg.content.lowercased()
         let id = msg.author?.id
         
-        if msg.content.contains("탑랭"), msg.content.contains(PrivateVariables.cenoxID) {
-            msg.delete()
-            return
-        }
-        
         if let _ = msg.author?.isBot { return }
+        
+        if content.contains("<@\(PrivateVariables.botID)>"), content.hasSuffix("-currentprefix") {
+            msg.reply(with: "현재 Prefix는 `\(Prefix)`에요!")
+        }
         
         if msg.content.contains("히토미") || msg.content.lowercased().contains("hitomi") {
             msg.add(reaction: "\\:hitomi:337513243859746816") { print($0 as Any) }
@@ -81,45 +101,92 @@ client.on(.messageCreate) { data in
         // 오버래피드 서버 검증
         if content == Prefix + "orvalidation" {
             msg.channel.send(Texts.chooseOne(from: messages.validationStart)) { org, _ in
-                Functions().checkServers {
+                function.checkServers {
                     org?.delete()
-                    var message = ""
-                    $0.forEach { message += $0 + "\n" }
-                    msg.reply(with: message)
+                    var message = ""; $0.forEach { message += $0 + "\n" }; msg.reply(with: message)
                 }
             }
         }
         
+        if content == Prefix + "cenoxvalidation" {
+            function.checkCenoXServer { msg.reply(with: $0 ? "아빠 서버는 지금 죽은 것 같아요 ㅠㅠㅠ" : "아빠 서버는 지금 살아있어요!") }
+        }
+        
         // 말 따라하기 || 말 대신 하기
         if content.hasPrefix(Prefix + "say") || content.hasPrefix(Prefix + "dsay") {
-            let isNeedToDelete = content.hasPrefix(Prefix + "dsay")
-            if isNeedToDelete { msg.delete() }
+            if content.hasPrefix(Prefix + "dsay") { msg.delete() }
             msg.channel.send(
-                content.replacingOccurrences(of: isNeedToDelete ? Prefix + "dsay" : Prefix + "say", with: "")
+                content.replacingOccurrences(of: content.hasPrefix(Prefix + "dsay") ? Prefix + "dsay" : Prefix + "say", with: "")
             )
         }
+    }
+}
+
+client.on(.messageCreate) { data in
+    if let msg = data as? Message {
+        let content = msg.content
+        let id = msg.author?.id
         
         // == 아빠 전용 명령어 정의 구간 == //
         if id == PrivateVariables.cenoxID {
             let prefix = Prefix + "papa."
+            
             // 플레이 중 변경
             if content == prefix + "changegame" {
-                msg.channel.send(Texts.chooseOne(from: messages.changeGame)) {
-                    if $1 == nil { cache.changeGame = $0! }
-                }
+                msg.channel.send(Texts.chooseOne(from: messages.changeGame)) { if $1 == nil { cache.changeGame = $0! } }
             }
             
             if content.hasPrefix("*"), cache.isChangingGame {
                 (cache.changeGame as? Message)?.delete()
                 client.editStatus(to: "Online", playing: msg.content.components(separatedBy: "*").last)
-                msg.add(reaction: "✅")
-                cache.changeGame = nil
-                cache.isChangingGame = false
+                msg.add(reaction: "✅"); cache.changeGame = nil; cache.isChangingGame = false
             }
             
             // 레벨테이블 보기
             if content == prefix + "leveltable" {
                 msg.channel.send(Texts.chooseOne(from: messages.annoying) + "\nhttps://jb.v.anil.la/t/?id=\(PrivateVariables.jbRivalID)&level=10")
+            }
+            
+            // 서버 Prefix 바꾸기
+            if content.hasPrefix(prefix + "changePrefix") {
+                if let contents = content.components(separatedBy: "changePrefix ").last {
+                    msg.reply(with: "입력된 새 prefix는 \(contents)야. 정말로 변경할까?")
+                    cache.prefixCache = contents
+                    cache.changePrefix = true
+                }
+            }
+            
+            if content.hasPrefix("*"), cache.changePrefix {
+                if let contents = content.lowercased().components(separatedBy: "*").last {
+                    if contents == "y" {
+                        UserDefaults.standard.set(cache.prefixCache, forKey: "prefix")
+                        UserDefaults.standard.synchronize()
+                        Prefix = cache.prefixCache!
+                        msg.add(reaction: "✅"); msg.reply(with: "변경됐어! 앞으로 날 호출할 땐 앞에 \(cache.prefixCache!)를 붙여줘!")
+                        cache.prefixCache = nil; cache.changePrefix = false
+                    } else { msg.reply(with: "명령어를 확인할 수 없어서 취소됐어."); cache.prefixCache = nil; cache.changePrefix = false }
+                }
+            }
+            
+            // Prefix 초기화
+            if content == prefix + "resetPrefix" {
+                UserDefaults.standard.set("s!", forKey: "prefix")
+                UserDefaults.standard.synchronize()
+                Prefix = "s!"
+                msg.add(reaction: "✅"); msg.reply(with: "Prefix가 처음으로 되돌려졌어. 앞으로 `s!`로 날 불러줘!")
+            }
+            
+            // 서버 체크 타이머 관련 명령어
+            if #available(OSX 10.12, *) {
+                if content == prefix + "timerInvalidate" { timer.invalidate(); msg.add(reaction: "✅") }
+                
+                if content.hasPrefix(prefix + "timerReset") {
+                    if let contents = content.components(separatedBy: "timerReset ").last, let toInt = Int(contents) {
+                        timer.invalidate()
+                        timer = Timer.scheduledTimer(withTimeInterval: TimeInterval(toInt), repeats: true) { _ in continuousAction() }
+                        msg.add(reaction: "✅")
+                    } else { msg.reply(with: "시간을 모르겠어, 다시 이야기해줘") }
+                }
             }
         }
         
@@ -127,21 +194,19 @@ client.on(.messageCreate) { data in
         if content.hasPrefix("s!dev.") {
             let prefix = Prefix + "dev."
             if content == prefix + "version" { msg.channel.send(version) }
+            if content == prefix + "reaction" { reactions.forEach { msg.add(reaction: $0) {print($0 as Any)} } }
+            
             if content == prefix + "info" {
-                let message =   "**Serin BoT** - ported to Swift version.\n\n" +
-                                "**Current hardware**: \(Sysctl.model)\n" +
-                                "**HostName**: \(Sysctl.hostName)\n" +
-                                "**Total RAM**: \(Sysctl.memSize / 1024 / 1024)MB\n" +
-                                "**Kernel**: \(Sysctl.version)\n"
-                msg.channel.send(message)
-            }
-            if content == prefix + "reaction" {
-                msg.add(reaction: "\\:meu:337513217485963264") { print($0 as Any) }
-                msg.add(reaction: "\\:nadenade:337525787907588097") { print($0 as Any) }
-                msg.add(reaction: "\\:hitomi:337513243859746816") { print($0 as Any) }
-                msg.add(reaction: "✅") { print($0 as Any) }
+                msg.channel.send(
+                    "**Serin BoT** - ported to Swift version.\n\n" +
+                        "**Current hardware**: \(Sysctl.model)\n" +
+                        "**HostName**: \(Sysctl.hostName)\n" +
+                        "**Total RAM**: \(Sysctl.memSize / 1024 / 1024)MB\n" +
+                    "**Kernel**: \(Sysctl.version)\n"
+                )
             }
         }
+        
     }
 }
 

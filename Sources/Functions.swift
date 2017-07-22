@@ -25,4 +25,15 @@ class Functions {
             }.resume()
         }
     }
+    
+    func checkCenoXServer(callback: @escaping (_ isError: Bool) -> ()) {
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 3
+        
+        let session = URLSession(configuration: config)
+        
+        session.dataTask(with: URL(string: "https://cenox.co")!) { data, response, error in
+            if error != nil { callback(true) } else { callback(false) }
+        }.resume()
+    }
 }

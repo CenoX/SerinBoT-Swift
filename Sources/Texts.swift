@@ -31,7 +31,6 @@ struct Texts {
     "```js\n" +
     "== 개발 전용 명령어 ==\n\n\n" +
     "`dev.version` - 커밋의 시간을 출력해요!\n\n" +
-    "`dev.info` - 현재 돌리고 있는 서버의 정보를 출력해요.\n\n" +
     "`dev.reaction` - 리액션 테스트를 진행하고 있어요!\n\n" +
     "`dev.embed` - Embed 테스트를 진행하고 있어요!\n\n" +
     "```"
@@ -61,7 +60,7 @@ struct Texts {
     "`s!help [type]` 으로 좀 더 상세한 명령어를 확인할 수 있어요!\n\n\n" +
     "**common** - `| -serin --d 시간(초)` `help` `uwu` `joke` `orvalidation` `say` `dsay`\n\n" +
     "**papa** - `changegame` `leveltable` `timerInvalidate` `timerReset 시간` `changePrefix` `resetPrefix`\n\n" +
-    "**dev** - `version` `info` `reaction`"
+    "**dev** - `version` `reaction`"
 
     
     let jokes = [

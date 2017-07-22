@@ -1,5 +1,4 @@
 import Foundation
-import CwlUtils
 import Sword
 
 let dateFormatter = DateFormatter()
@@ -34,7 +33,7 @@ client.on(.ready) { [unowned client] _ in
     print("Ready to launch. triggering messages")
     
     let message =   "<@\(PrivateVariables.cenoxID)>, 기동을 완료했어요 아빠!\n" +
-                    "실행 시간은 \(version), \(Sysctl.osType) \(Sysctl.machine) 기반의 \(Sysctl.hostName)에서 기동중이에요!\n\n"
+                    "실행 시간은 \(version), \(ProcessInfo().hostName)에서 기동중이에요!\n\n"
     
     DispatchQueue.main.asyncAfter(deadline: client.deadline(of: 1.0)) {
         client.getChannel(for: PrivateVariables.meuChatID!)?.send(message)
@@ -195,16 +194,6 @@ client.on(.messageCreate) { data in
             let prefix = Prefix + "dev."
             if content == prefix + "version" { msg.channel.send(version) }
             if content == prefix + "reaction" { PrivateVariables.reactions.forEach { msg.add(reaction: $0) {print($0 as Any)} } }
-            
-            if content == prefix + "info" {
-                msg.channel.send(
-                    "**Serin BoT** - ported to Swift version.\n\n" +
-                        "**Current hardware**: \(Sysctl.model)\n" +
-                        "**HostName**: \(Sysctl.hostName)\n" +
-                        "**Total RAM**: \(Sysctl.memSize / 1024 / 1024)MB\n" +
-                    "**Kernel**: \(Sysctl.version)\n"
-                )
-            }
         }
         
     }

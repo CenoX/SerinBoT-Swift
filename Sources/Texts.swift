@@ -44,8 +44,8 @@ struct Texts {
     "`papa.leveltable` - 레벨테이블 링크를 알려줘요!\n\n" +
     "`papa.timerInvalidate` - 아빠 서버의 상태 확인을 중단해요.\n\n" +
     "`papa.timerReset 시간(초)` - 아빠 서버의 상태를 몇초마다 확인할 것인지 설정해요!\n\n" +
-    "`changePrefix` - 저를 호출하는 명령어를 변경해요!\n\n" +
-    "`resetPrefix` - 저를 호출하는 명령어를 초기 설정인 `s!`로 되돌려요.\n\n" +
+    "`papa.changePrefix` - 저를 호출하는 명령어를 변경해요!\n\n" +
+    "`papa.resetPrefix` - 저를 호출하는 명령어를 초기 설정인 `s!`로 되돌려요.\n\n" +
     "```\n\n\n" +
     "호출명령어는 `UserDefaults`에 **prefix**라는 키로 저장되요!"
 

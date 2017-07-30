@@ -156,6 +156,15 @@ client.on(.messageCreate) { data in
                 }
             }
             
+            // 봇 끄기
+            if content == prefix + "halt --serin --now" {
+                msg.reply(with: "봇 종료 명령어 확인. 나중에봐!")
+                client.disconnect()
+                DispatchQueue.main.asyncAfter(deadline: client.deadline(of: 3.0)) {
+                    exit(0)
+                }
+            }
+            
             if content.hasPrefix("*"), cache.changePrefix {
                 if let contents = content.lowercased().components(separatedBy: "*").last {
                     if contents == "y" {

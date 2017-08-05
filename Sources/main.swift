@@ -1,9 +1,14 @@
 import Foundation
 import CwlUtils
 import Sword
+import Then
 
-let dateFormatter = DateFormatter()
-dateFormatter.dateFormat = "yyyy-MM-dd HH:MM:SS Z"
+extension DispatchTime: Then {}
+extension SecureElements: Then {}
+
+let dateFormatter = DateFormatter().then {
+    $0.dateFormat = "yyyy-MM-dd HH:mm:ss Z"
+}
 
 let version = dateFormatter.string(from: Date())
 
@@ -17,6 +22,8 @@ let cache = Caches()
 let function = Functions()
 let document = Documents.shared
 var timer = Timer()
+
+var uptimeDate: Date! = nil
 
 func continuousAction() {
     print("continuousAction")
@@ -37,11 +44,12 @@ client.on(.ready) { [unowned client] _ in
                     "실행 시간은 \(version), \(Sysctl.osType) \(Sysctl.machine) 기반의 \(Sysctl.hostName)에서 기동중이에요!\n\n"
     
     DispatchQueue.main.asyncAfter(deadline: client.deadline(of: 1.0)) {
-        client.getChannel(for: PrivateVariables.meuChatID!)?.send(message)
-        
         if #available(OSX 10.12, *) {
             continuousAction()
+            client.getChannel(for: PrivateVariables.meuChatID!)?.send(message)
             timer = Timer.scheduledTimer(withTimeInterval: 600, repeats: true) { _ in continuousAction() }
+            uptimeDate = Date()
+            print(uptimeDate)
         } else {
             client.getChannel(for: PrivateVariables.meuChatID!)?.send("<@\(PrivateVariables.cenoxID)>, 실행환경의 제약으로 인해, 서버상태를 확인할 수 없어. 미안해!")
         }
@@ -54,6 +62,10 @@ client.on(.messageCreate) { data in
         let id = msg.author?.id
         
         if let _ = msg.author?.isBot { return }
+        
+        if msg.mentions.first?.id == PrivateVariables.botID {
+            msg.reply(with: Texts.chooseOne(from: messages.hello))
+        }
         
         if content.contains("<@\(PrivateVariables.botID)>"), content.hasSuffix("-currentprefix") {
             msg.reply(with: "현재 Prefix는 `\(Prefix)`에요!")
@@ -108,8 +120,41 @@ client.on(.messageCreate) { data in
             }
         }
         
+        // 집 서버 검증
         if content == Prefix + "cenoxvalidation" {
             function.checkCenoXServer { msg.reply(with: $0 ? "아빠 서버는 지금 죽은 것 같아요 ㅠㅠㅠ" : "아빠 서버는 지금 살아있어요!") }
+        }
+        
+        // 해민이 숙청
+        if content == Prefix + "숙청" {
+            let param: [String:Any] = ["delete-message-days":7]
+            client.ban(PrivateVariables.banUser1!, from: msg.channel.id, for: "너도 아는 누군가가 너랑 엮이기 싫데요!", with: param) { err in
+                if let error = err {
+                    msg.reply(with: error.message)
+                } else {
+                    msg.reply(with: "Done^^")
+                }
+            }
+        }
+        
+        if content.hasPrefix(Prefix + "rm") {
+            if  let component = msg.content.components(separatedBy: "rm ").last,
+                let count = Int(component) {
+                let params: [String : Any] = ["limit"   :count,
+                                              "before"  :msg.id]
+                client.getMessages(from: msg.channel.id, with: params) {
+                    if let error = $1 {
+                        msg.reply(with: "처리하는데 오류가 발생했어.")
+                        return
+                    }
+                    if let messages = $0 {
+                        messages.forEach { $0.delete() }
+                        msg.add(reaction: "✅")
+                    }
+                }
+            } else {
+                msg.reply(with: "시간을 모르겠어, 다시 이야기해줘")
+            }
         }
         
         // 말 따라하기 || 말 대신 하기
@@ -141,12 +186,7 @@ client.on(.messageCreate) { data in
                 client.editStatus(to: "Online", playing: msg.content.components(separatedBy: "*").last)
                 msg.add(reaction: "✅"); cache.changeGame = nil; cache.isChangingGame = false
             }
-            
-            // 레벨테이블 보기
-            if content == prefix + "leveltable" {
-                msg.channel.send(Texts.chooseOne(from: messages.annoying) + "\nhttps://jb.v.anil.la/t/?id=\(PrivateVariables.jbRivalID)&level=10")
-            }
-            
+                        
             // 서버 Prefix 바꾸기
             if content.hasPrefix(prefix + "changePrefix") {
                 if let contents = content.components(separatedBy: "changePrefix ").last {
@@ -157,19 +197,23 @@ client.on(.messageCreate) { data in
             }
             
             // 봇 끄기
-            if content == prefix + "halt --serin --now" {
+            if content == prefix + "halt" {
                 msg.reply(with: "봇 종료 명령어 확인. 나중에봐!")
                 client.disconnect()
-                DispatchQueue.main.asyncAfter(deadline: client.deadline(of: 3.0)) {
-                    exit(0)
+                let deadline = client.deadline(of: 3.0).with {
+                    DispatchQueue.main.asyncAfter(deadline: $0) {
+                        exit(0)
+                    }
                 }
             }
             
             if content.hasPrefix("*"), cache.changePrefix {
                 if let contents = content.lowercased().components(separatedBy: "*").last {
                     if contents == "y" {
-                        UserDefaults.standard.set(cache.prefixCache, forKey: "prefix")
-                        UserDefaults.standard.synchronize()
+                        UserDefaults.standard.do {
+                            $0.set(cache.prefixCache, forKey: "prefix")
+                            $0.synchronize()
+                        }
                         Prefix = cache.prefixCache!
                         msg.add(reaction: "✅"); msg.reply(with: "변경됐어! 앞으로 날 호출할 땐 앞에 \(cache.prefixCache!)를 붙여줘!")
                         cache.prefixCache = nil; cache.changePrefix = false
@@ -179,8 +223,10 @@ client.on(.messageCreate) { data in
             
             // Prefix 초기화
             if content == prefix + "resetPrefix" {
-                UserDefaults.standard.set("s!", forKey: "prefix")
-                UserDefaults.standard.synchronize()
+                UserDefaults.standard.do {
+                    $0.set("s!", forKey: "prefix")
+                    $0.synchronize()
+                }
                 Prefix = "s!"
                 msg.add(reaction: "✅"); msg.reply(with: "Prefix가 처음으로 되돌려졌어. 앞으로 `s!`로 날 불러줘!")
             }
@@ -204,7 +250,6 @@ client.on(.messageCreate) { data in
             let prefix = Prefix + "dev."
             if content == prefix + "version" { msg.channel.send(version) }
             if content == prefix + "reaction" { PrivateVariables.reactions.forEach { msg.add(reaction: $0) {print($0 as Any)} } }
-            
             if content == prefix + "info" {
                 msg.channel.send(
                     "**Serin BoT** - ported to Swift version.\n\n" +
@@ -213,6 +258,15 @@ client.on(.messageCreate) { data in
                         "**Total RAM**: \(Sysctl.memSize / 1024 / 1024)MB\n" +
                     "**Kernel**: \(Sysctl.version)\n"
                 )
+            }
+            if content == prefix + "uptime" {
+                let interval = Date().timeIntervalSince(uptimeDate)
+                let date = Date(timeIntervalSince1970: interval)
+                let formatter = DateFormatter().then {
+                    $0.timeZone = TimeZone(secondsFromGMT: 0)
+                    $0.dateFormat = "HH:mm:ss"
+                }
+                msg.channel.send("나는 지금 \(formatter.string(from: date)) 동안 켜져있었어!")
             }
         }
         

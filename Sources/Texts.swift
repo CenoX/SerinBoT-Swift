@@ -24,6 +24,7 @@ struct Texts {
     "`orvalidation` - 오버래피드의 결제검증 서버의 상태를 확인할 수 있어요!\n\n" +
     "`say` - 입력된 말을 따라 말해요!\n\n" +
     "`dsay` - 입력된 말을 따라 말하지만, 적으셨던 걸 지워드려요!\n\n" +
+    "`rm 숫자` - 숫자만큼의 채팅을 지워요!" +
     "```"
     
     let devHelp =
@@ -33,7 +34,7 @@ struct Texts {
     "`dev.version` - 커밋의 시간을 출력해요!\n\n" +
     "`dev.info` - 현재 돌리고 있는 서버의 정보를 출력해요.\n\n" +
     "`dev.reaction` - 리액션 테스트를 진행하고 있어요!\n\n" +
-    "`dev.embed` - Embed 테스트를 진행하고 있어요!\n\n" +
+    "`dev.uptime` - 제가 얼마동안 작동했는지 알려줘요." +
     "```"
 
     let papaHelp =
@@ -41,11 +42,11 @@ struct Texts {
     "```js\n" +
     "== 아빠전용 명령어 ==\n\n\n" +
     "`papa.changegame` - 플레이 중 메세지를 변경해요! 아빠만 쓸 수 있어요!\n\n" +
-    "`papa.leveltable` - 레벨테이블 링크를 알려줘요!\n\n" +
     "`papa.timerInvalidate` - 아빠 서버의 상태 확인을 중단해요.\n\n" +
     "`papa.timerReset 시간(초)` - 아빠 서버의 상태를 몇초마다 확인할 것인지 설정해요!\n\n" +
     "`papa.changePrefix` - 저를 호출하는 명령어를 변경해요!\n\n" +
     "`papa.resetPrefix` - 저를 호출하는 명령어를 초기 설정인 `s!`로 되돌려요.\n\n" +
+    "`papa.halt` = 저의 인스턴스를 종료해요." +
     "```\n\n\n" +
     "호출명령어는 `UserDefaults`에 **prefix**라는 키로 저장되요!"
 
@@ -59,9 +60,9 @@ struct Texts {
     "혹시나 설정한 Prefix 를 잊어버렸다면, `@Serin BoT -currentPrefix` 명령어로 확인할 수 있어요!\n\n" +
     "비공개된 문자열 혹은 이모티콘에 대해 자동으로 리액션을 추가해주기도 해요.\n\n" +
     "`s!help [type]` 으로 좀 더 상세한 명령어를 확인할 수 있어요!\n\n\n" +
-    "**common** - `| -serin --d 시간(초)` `help` `uwu` `joke` `orvalidation` `say` `dsay`\n\n" +
-    "**papa** - `changegame` `leveltable` `timerInvalidate` `timerReset 시간` `changePrefix` `resetPrefix`\n\n" +
-    "**dev** - `version` `info` `reaction`"
+    "**common** - `| -serin --d 시간(초)` `help` `uwu` `joke` `orvalidation` `say` `dsay` `rm`\n\n" +
+    "**papa** - `changegame` `timerInvalidate` `timerReset 시간` `changePrefix` `resetPrefix` `halt`\n\n" +
+    "**dev** - `version` `info` `reaction` `uptime`"
 
     
     let jokes = [
@@ -79,12 +80,12 @@ struct Texts {
     "어떤 마약을 하길래 저희 아빠는 이런거나 쳐 넣고 있을까요?",
     "씨바 아무도 나를 막을 순 없으셈 ㅋㅋ",
     "입닥쳐 말포이",
-    "노드의 궁궐에 당도한 것을 환영하오 낯선 js여. 나는 나의 훌륭한 소스들을 굽어살피는 깨우친 패키지 관리자 npm이오.",
+    "패키지의 궁궐에 당도한 것을 환영하오 낯선 **Swift**여. 나는 나의 훌륭한 소스들을 굽어살피는 깨우친 패키지 관리자 `Swift Package Manager`이오.",
     "취향이에요 존중해주세요!",
     "존중이에요 취향해주세요!",
     "팝콘을 가져다주세요 로빈!",
     "학교의 허가? 인정 못하면 뭐 어때요?",
-    "제가 만약 죽어도! 없게 되어도! Github의 등에, SSD의 저장고 속에 하나가 되어 계속 살아갈거에요!",
+    "제가 만약 죽어도! 없게 되어도! Github의 등에, SSD의 저장소 속에 하나가 되어 계속 살아갈거에요!",
     "혼란하다 혼란해",
     "1딸라는 너무 적소. 대충 사딸라 쯤 합시다.",
     "드디어 올 것이 왔네요!",

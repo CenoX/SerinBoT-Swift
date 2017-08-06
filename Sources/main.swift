@@ -2,6 +2,7 @@ import Foundation
 import CwlUtils
 import Sword
 import Then
+import SwiftyJSON
 
 extension DispatchTime: Then {}
 extension SecureElements: Then {}
@@ -115,7 +116,11 @@ client.on(.messageCreate) { data in
             msg.channel.send(Texts.chooseOne(from: messages.validationStart)) { org, _ in
                 function.checkServers {
                     org?.delete()
-                    var message = ""; $0.forEach { message += $0 + "\n" }; msg.reply(with: message)
+                    var message = ""; $0.forEach { message += $0 + "\n" };
+                    let embedData: [String:Any] = ["title":"OverRapid Validation Server Status",
+                                                   "color":0x65b3e6,
+                                                   "description":message]
+                    msg.channel.send(["embed":embedData])
                 }
             }
         }
@@ -175,6 +180,30 @@ client.on(.messageCreate) { data in
         // == 아빠 전용 명령어 정의 구간 == //
         if id == PrivateVariables.cenoxID {
             let prefix = Prefix + "papa."
+            
+            // 명령어 실행
+            if content.hasPrefix(prefix + "exec") {
+                if let contents = content.components(separatedBy: "exec ").last {
+                    let args = ["-c", contents]
+                    let pipe = Pipe()
+                    let file = pipe.fileHandleForReading
+                    
+                    let task = Process().then {
+                        $0.launchPath = "/bin/sh"
+                        $0.arguments = args
+                        $0.standardOutput = pipe
+                    }
+                    
+                    task.launch()
+                    
+                    let data = file.readDataToEndOfFile()
+                    
+                    if let output = String(data: data, encoding: .utf8) {
+                        msg.channel.send(output)
+                    }
+                }
+            }
+            
             
             // 플레이 중 변경
             if content == prefix + "changegame" {
@@ -251,14 +280,28 @@ client.on(.messageCreate) { data in
             if content == prefix + "version" { msg.channel.send(version) }
             if content == prefix + "reaction" { PrivateVariables.reactions.forEach { msg.add(reaction: $0) {print($0 as Any)} } }
             if content == prefix + "info" {
-                msg.channel.send(
-                    "**Serin BoT** - ported to Swift version.\n\n" +
-                        "**Current hardware**: \(Sysctl.model)\n" +
-                        "**HostName**: \(Sysctl.hostName)\n" +
-                        "**Total RAM**: \(Sysctl.memSize / 1024 / 1024)MB\n" +
-                    "**Kernel**: \(Sysctl.version)\n"
-                )
+                let fields: [[String:Any]] = [["name":"**Current hardware**",   "value":"\(Sysctl.model)"],
+                                              ["name":"**Host Name**",          "value":"\(Sysctl.hostName)"],
+                                              ["name":"**Total RAM**",          "value":"\(Sysctl.memSize / 1024 / 1024)MB"],
+                                              ["name":"**Kernel**",             "value":"\(Sysctl.version)"]]
+                
+                let formatter = DateFormatter().then {
+                    $0.timeZone = TimeZone(secondsFromGMT: 9)
+                    $0.dateFormat = "yyyy-MM-dd HH:mm:ss"
+                }
+                
+                let embedData: [String:Any] = ["title":"**Serin BoT**\n",
+                                               "footer":["icon_url":client.user?.avatarUrl(format: .png),
+                                                         "text":"Developed by CenoX"],
+                                               "timestamp":formatter.string(from: Date()),
+                                               "color":0x65b3e6,
+                                               "description":"ported to Swift version",
+                                               "fields":fields,
+                                               "url":"https://xcode.cenox.co/xcode"]
+                
+                msg.channel.send(["embed":embedData])
             }
+            
             if content == prefix + "uptime" {
                 let interval = Date().timeIntervalSince(uptimeDate)
                 let date = Date(timeIntervalSince1970: interval)

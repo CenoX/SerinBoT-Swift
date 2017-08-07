@@ -312,7 +312,6 @@ client.on(.messageCreate) { data in
                 msg.channel.send("나는 지금 \(formatter.string(from: date)) 동안 켜져있었어!")
             }
         }
-        
     }
 }
 

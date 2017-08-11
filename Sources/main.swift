@@ -192,6 +192,7 @@ client.on(.messageCreate) { data in
                         $0.launchPath = "/bin/sh"
                         $0.arguments = args
                         $0.standardOutput = pipe
+                        $0.standardError = pipe
                     }
                     
                     task.launch()

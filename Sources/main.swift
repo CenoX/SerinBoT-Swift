@@ -116,10 +116,11 @@ client.on(.messageCreate) { data in
             msg.channel.send(Texts.chooseOne(from: messages.validationStart)) { org, _ in
                 function.checkServers {
                     org?.delete()
-                    var message = ""; $0.forEach { message += $0 + "\n" };
+                    print($0)
                     let embedData: [String:Any] = ["title":"OverRapid Validation Server Status",
                                                    "color":0x65b3e6,
-                                                   "description":message]
+                                                   "description":Texts.chooseOne(from: messages.validationResult),
+                                                   "fields":$0]
                     msg.channel.send(["embed":embedData])
                 }
             }

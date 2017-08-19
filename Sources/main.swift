@@ -298,7 +298,7 @@ client.on(.messageCreate) { data in
                                                "color":0x65b3e6,
                                                "description":"ported to Swift version",
                                                "fields":fields,
-                                               "url":"https://xcode.cenox.co/xcode"]
+                                               "url":"https://cenox.co/serin.html"]
                 
                 msg.channel.send(["embed":embedData])
             }

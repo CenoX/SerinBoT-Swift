@@ -60,7 +60,6 @@ client.on(.ready) { [unowned client] _ in
 client.on(.messageCreate) { data in
     if let msg = data as? Message {
         let content = msg.content.lowercased()
-        let id = msg.author?.id
         
         if let _ = msg.author?.isBot { return }
         
@@ -230,7 +229,7 @@ client.on(.messageCreate) { data in
             if content == prefix + "halt" {
                 msg.reply(with: "봇 종료 명령어 확인. 나중에봐!")
                 client.disconnect()
-                let deadline = client.deadline(of: 3.0).with {
+                client.deadline(of: 3.0).with {
                     DispatchQueue.main.asyncAfter(deadline: $0) {
                         exit(0)
                     }

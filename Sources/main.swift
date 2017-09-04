@@ -64,7 +64,7 @@ client.on(.messageCreate) { data in
         
         if let _ = msg.author?.isBot { return }
         
-        if msg.mentions.first?.id == PrivateVariables.botID {
+        if content == "<@\(PrivateVariables.botID)>" {
             msg.reply(with: Texts.chooseOne(from: messages.hello))
         }
         
@@ -130,7 +130,6 @@ client.on(.messageCreate) { data in
             function.checkCenoXServer { msg.reply(with: $0 ? "아빠 서버는 지금 죽은 것 같아요 ㅠㅠㅠ" : "아빠 서버는 지금 살아있어요!") }
         }
         
-        // 해민이 숙청
         if content == Prefix + "숙청" {
             let param: [String:Any] = ["delete-message-days":7]
             client.ban(PrivateVariables.banUser1!, from: msg.channel.id, for: "너도 아는 누군가가 너랑 엮이기 싫데요!", with: param) { err in
@@ -149,7 +148,7 @@ client.on(.messageCreate) { data in
                                               "before"  :msg.id]
                 client.getMessages(from: msg.channel.id, with: params) {
                     if let error = $1 {
-                        msg.reply(with: "처리하는데 오류가 발생했어.")
+                        msg.reply(with: "처리하는데 오류가 발생했어.\n\(error.localizedDescription)")
                         return
                     }
                     if let messages = $0 {
@@ -213,7 +212,7 @@ client.on(.messageCreate) { data in
             
             if content.hasPrefix("*"), cache.isChangingGame {
                 (cache.changeGame as? Message)?.delete()
-                client.editStatus(to: "Online", playing: msg.content.components(separatedBy: "*").last)
+                client.editStatus(to: "Online", playing: ["name": msg.content.components(separatedBy: "*").last ?? "Fetch error", "type": 0])
                 msg.add(reaction: "✅"); cache.changeGame = nil; cache.isChangingGame = false
             }
                         
@@ -298,7 +297,7 @@ client.on(.messageCreate) { data in
                                                "color":0x65b3e6,
                                                "description":"ported to Swift version",
                                                "fields":fields,
-                                               "url":"https://xcode.cenox.co/xcode"]
+                                               "url":"https://cenox.co/serin.html"]
                 
                 msg.channel.send(["embed":embedData])
             }

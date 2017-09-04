@@ -41,6 +41,7 @@ struct Texts {
     "아빠 전용 명령어는 기본 Prefix인 `s!`뒤에 `papa.`를 붙여 실행할 수 있어요!\n\n" +
     "```js\n" +
     "== 아빠전용 명령어 ==\n\n\n" +
+    "`papa.exec 실행인자` - 실행인자로 넣은 명령어를 /bin/sh를 기반으로 실행해요! 아직까지는 명령어가 실행되면 바로 종료되니, 이 점 유의해주세요!" +
     "`papa.changegame` - 플레이 중 메세지를 변경해요! 아빠만 쓸 수 있어요!\n\n" +
     "`papa.timerInvalidate` - 아빠 서버의 상태 확인을 중단해요.\n\n" +
     "`papa.timerReset 시간(초)` - 아빠 서버의 상태를 몇초마다 확인할 것인지 설정해요!\n\n" +
@@ -61,7 +62,7 @@ struct Texts {
     "비공개된 문자열 혹은 이모티콘에 대해 자동으로 리액션을 추가해주기도 해요.\n\n" +
     "`s!help [type]` 으로 좀 더 상세한 명령어를 확인할 수 있어요!\n\n\n" +
     "**common** - `| -serin --d 시간(초)` `help` `uwu` `joke` `orvalidation` `say` `dsay` `rm`\n\n" +
-    "**papa** - `changegame` `timerInvalidate` `timerReset 시간` `changePrefix` `resetPrefix` `halt`\n\n" +
+    "**papa** - `exec` `changegame` `timerInvalidate` `timerReset 시간` `changePrefix` `resetPrefix` `halt`\n\n" +
     "**dev** - `version` `info` `reaction` `uptime`"
 
     

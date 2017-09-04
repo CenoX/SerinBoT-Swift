@@ -12,7 +12,8 @@ import SwiftyJSON
 import Sword
 
 class Functions {
-    func checkServers(callback: @escaping (_ result: [String]) -> ()) {
+    func checkServers(callback: @escaping (_ fields: [[String:Any]]) -> ()) {
+        var fields: [[String:Any]] = []
         var results = [Texts.chooseOne(from: messages.validationResult)]
         
         let config = URLSessionConfiguration.default
@@ -22,9 +23,10 @@ class Functions {
         
         PrivateVariables.orServers.forEach { server in
             session.dataTask(with: server.url) { data, response, error in
-                let message = (error != nil) ? "사용 불가능" : "사용가능"
+                let message = (error != nil) ? "사용 불가능" : "사용 가능"
                 results.append("**\(server.alias)**님의 서버는 지금 \(message)")
-                if results.count == 5 { callback(results) }
+                fields.append(["name":"\(server.alias) 님의 서버:", "value":message])
+                if results.count == PrivateVariables.orServers.count + 1 { callback(fields) }
             }.resume()
         }
     }

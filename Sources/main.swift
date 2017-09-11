@@ -229,7 +229,7 @@ client.on(.messageCreate) { data in
             if content == prefix + "halt" {
                 msg.reply(with: "봇 종료 명령어 확인. 나중에봐!")
                 client.disconnect()
-                client.deadline(of: 3.0).with {
+                client.deadline(of: 3.0).do {
                     DispatchQueue.main.asyncAfter(deadline: $0) {
                         exit(0)
                     }

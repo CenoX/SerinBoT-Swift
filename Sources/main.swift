@@ -28,7 +28,7 @@ var timer = Timer()
 var uptimeDate: Date! = nil
 
 func continuousAction() {
-    print("continuousAction")
+    print("Checking CenoX Server.")
     function.checkCenoXServer {
         if $0 { client.getChannel(for: PrivateVariables.meuChatID!)?.send(
             "<@\(PrivateVariables.cenoxID)>, 서버를 확인하는 중에 오류가 발생했어! 한번 확인해봐야 할 것 같아"
@@ -198,7 +198,6 @@ client.on(.messageCreate) { data in
                     task.launch()
                     
                     let data = file.readDataToEndOfFile()
-                    
                     if let output = String(data: data, encoding: .utf8) {
                         msg.channel.send(output)
                     }

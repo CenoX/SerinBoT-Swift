@@ -17,6 +17,7 @@ let PrivateVariables = SecureElements()
 var Prefix = (UserDefaults.standard.string(forKey: "prefix") != nil) ? UserDefaults.standard.string(forKey: "prefix")! : "s!"
 
 let client = Sword(token: PrivateVariables.token)
+var sema = DispatchSemaphore(value: 0)
 
 let messages = Texts()
 let cache = Caches()
@@ -230,6 +231,7 @@ client.on(.messageCreate) { data in
                 msg.reply(with: "봇 종료 명령어 확인. 나중에봐!")
                 client.disconnect()
                 client.deadline(of: 3.0).do {
+                    sema.signal()
                     DispatchQueue.main.asyncAfter(deadline: $0) {
                         exit(0)
                     }
@@ -316,3 +318,4 @@ client.on(.messageCreate) { data in
 }
 
 client.connect()
+sema.wait()

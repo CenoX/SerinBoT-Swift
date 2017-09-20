@@ -30,7 +30,7 @@ var uptimeDate: Date! = nil
 func continuousAction() {
     print("Checking CenoX Server.")
     function.checkCenoXServer {
-        if $0 { client.getChannel(for: PrivateVariables.meuChatID!)?.send(
+        if $0 { client.getChannel(for: PrivateVariables.meuChatID)?.send(
             "<@\(PrivateVariables.cenoxID)>, 서버를 확인하는 중에 오류가 발생했어! 한번 확인해봐야 할 것 같아"
             )
         }
@@ -48,12 +48,12 @@ client.on(.ready) { [unowned client] _ in
     DispatchQueue.main.asyncAfter(deadline: client.deadline(of: 1.0)) {
         if #available(OSX 10.12, *) {
             continuousAction()
-            client.getChannel(for: PrivateVariables.meuChatID!)?.send(message)
+            client.getChannel(for: PrivateVariables.meuChatID)?.send(message)
             timer = Timer.scheduledTimer(withTimeInterval: 600, repeats: true) { _ in continuousAction() }
             uptimeDate = Date()
             print(uptimeDate)
         } else {
-            client.getChannel(for: PrivateVariables.meuChatID!)?.send("<@\(PrivateVariables.cenoxID)>, 실행환경의 제약으로 인해, 서버상태를 확인할 수 없어. 미안해!")
+            client.getChannel(for: PrivateVariables.meuChatID)?.send("<@\(PrivateVariables.cenoxID)>, 실행환경의 제약으로 인해, 서버상태를 확인할 수 없어. 미안해!")
         }
     }
 }
@@ -131,13 +131,35 @@ client.on(.messageCreate) { data in
             function.checkCenoXServer { msg.reply(with: $0 ? "아빠 서버는 지금 죽은 것 같아요 ㅠㅠㅠ" : "아빠 서버는 지금 살아있어요!") }
         }
         
+        // 소전 경험치 계산
+        if content.hasPrefix(Prefix + "gfexp") {
+            if let value = content.components(separatedBy: "\(Prefix)gfexp").last?.components(separatedBy: "to"),
+                value.count == 2 {
+                guard let first = Int(value[0].trimmingCharacters(in: .whitespaces)),
+                    let second = Int(value[1].trimmingCharacters(in: .whitespaces)) else {
+                        msg.reply(with: "`\(Prefix)gfexp 기준 to 어디까지`의 형식으로 입력해주세요!\nex)`\(Prefix)gfexp 1 to 30`")
+                        return
+                }
+                let result = PrivateVariables.calcExp(from: first - 1, to: second - 1)
+                if result.isError {
+                    msg.reply(with: "DEBUG MESSAGE - \(first), \(second), \(result)")
+                    print("DEBUG MESSAGE - \(first), \(second), \(result)")
+                    msg.reply(with: "계산에 실패했어요. 값이 잘못되지 않았는지 확인해주세요.")
+                } else {
+                    msg.reply(with: "\(first) 레벨부터 \(second) 레벨이 되기 위해서는 총 \(result.totalExp)가 필요해요!")
+                }
+            } else {
+                msg.reply(with: "`\(Prefix)gfexp 기준 to 어디까지`의 형식으로 입력해주세요!\nex)`\(Prefix)gfexp 1 to 30`")
+            }
+        }
+        
         if content == Prefix + "숙청" {
             let param: [String:Any] = ["delete-message-days":7]
-            client.ban(PrivateVariables.banUser1!, from: msg.channel.id, for: "너도 아는 누군가가 너랑 엮이기 싫데요!", with: param) { err in
+            client.ban(PrivateVariables.banUser1, from: msg.channel.id, for: "너도 아는 누군가가 너랑 엮이기 싫데요!", with: param) { err in
                 if let error = err {
                     msg.reply(with: error.message)
                 } else {
-                    msg.reply(with: "Done^^")
+                    
                 }
             }
         }

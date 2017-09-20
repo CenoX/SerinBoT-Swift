@@ -54,7 +54,7 @@ func getAnime(_ msg: Message) {
     urls.forEach { aniurl in
         URLSession.shared.dataTask(with: aniurl.url) {
             if let error = $2 {
-                client.getChannel(for: PrivateVariables.meuChatID!)?.send(error.localizedDescription)
+                client.getChannel(for: PrivateVariables.meuChatID)?.send(error.localizedDescription)
                 return
             }
             if let data = $0 {

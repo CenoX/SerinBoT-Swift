@@ -25,6 +25,7 @@ struct Texts {
     "`say` - 입력된 말을 따라 말해요!\n\n" +
     "`dsay` - 입력된 말을 따라 말하지만, 적으셨던 걸 지워드려요!\n\n" +
     "`rm 숫자` - 숫자만큼의 채팅을 지워요!" +
+    "`gfexp 숫자 to 숫자` - 왼쪽 숫자부터 오른쪽 숫자까지의 필요한 경험치를 계산해요!" +
     "```"
     
     let devHelp =
@@ -61,7 +62,7 @@ struct Texts {
     "혹시나 설정한 Prefix 를 잊어버렸다면, `@Serin BoT -currentPrefix` 명령어로 확인할 수 있어요!\n\n" +
     "비공개된 문자열 혹은 이모티콘에 대해 자동으로 리액션을 추가해주기도 해요.\n\n" +
     "`s!help [type]` 으로 좀 더 상세한 명령어를 확인할 수 있어요!\n\n\n" +
-    "**common** - `| -serin --d 시간(초)` `help` `uwu` `joke` `orvalidation` `say` `dsay` `rm`\n\n" +
+    "**common** - `| -serin --d 시간(초)` `help` `uwu` `joke` `orvalidation` `say` `dsay` `rm` `gfexp strat to destination`\n\n" +
     "**papa** - `exec` `changegame` `timerInvalidate` `timerReset 시간` `changePrefix` `resetPrefix` `halt`\n\n" +
     "**dev** - `version` `info` `reaction` `uptime`"
 

@@ -140,7 +140,7 @@ client.on(.messageCreate) { data in
                         msg.reply(with: "`\(Prefix)gfexp 기준 to 어디까지`의 형식으로 입력해주세요!\nex)`\(Prefix)gfexp 1 to 30`")
                         return
                 }
-                let result = PrivateVariables.calcExp(from: first - 1, to: second - 1)
+                let result = PrivateVariables.calcExp(from: first, to: second - 1)
                 if result.isError {
                     msg.reply(with: "DEBUG MESSAGE - \(first), \(second), \(result)")
                     print("DEBUG MESSAGE - \(first), \(second), \(result)")

@@ -50,6 +50,10 @@ client.on(.ready) { [unowned client] _ in
             continuousAction()
             client.getChannel(for: PrivateVariables.meuChatID)?.send(message)
             timer = Timer.scheduledTimer(withTimeInterval: 600, repeats: true) { _ in continuousAction() }
+            Timer.scheduledTimer(withTimeInterval: 1800, repeats: true) { _ in
+                client.disconnect()
+                client.connect()
+            }
             uptimeDate = Date()
             print(uptimeDate)
         } else {

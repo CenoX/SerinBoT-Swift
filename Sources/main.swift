@@ -1,4 +1,5 @@
 import Foundation
+import AVFoundation
 import CwlUtils
 import Sword
 import Then
@@ -16,28 +17,13 @@ let version = dateFormatter.string(from: Date())
 let PrivateVariables = SecureElements()
 var Prefix = (UserDefaults.standard.string(forKey: "prefix") != nil) ? UserDefaults.standard.string(forKey: "prefix")! : "s!"
 
-let client = Sword(token: PrivateVariables.token)
-var sema = DispatchSemaphore(value: 0)
-
 let messages = Texts()
 let cache = Caches()
-let function = Functions()
 let document = Documents.shared
 var timer = Timer()
-
 var uptimeDate: Date! = nil
 
-func continuousAction() {
-    print("Checking CenoX Server.")
-    function.checkCenoXServer {
-        if $0 { client.getChannel(for: PrivateVariables.meuChatID)?.send(
-            "<@\(PrivateVariables.cenoxID)>, 서버를 확인하는 중에 오류가 발생했어! 한번 확인해봐야 할 것 같아"
-            )
-        }
-    }
-}
-
-client.disconnect()
+let client = Sword(token: PrivateVariables.token)
 
 client.on(.ready) { [unowned client] _ in
     print("Ready to launch. triggering messages")
@@ -56,14 +42,21 @@ client.on(.ready) { [unowned client] _ in
             }
             uptimeDate = Date()
             print(uptimeDate)
-        } else {
-            client.getChannel(for: PrivateVariables.meuChatID)?.send("<@\(PrivateVariables.cenoxID)>, 실행환경의 제약으로 인해, 서버상태를 확인할 수 없어. 미안해!")
+        }
+    }
+}
+
+client.on(.messageCreate) {
+    if let msg = $0 as? Message {
+        if msg.content.hasPrefix(Prefix) {
+            print("Input: \(msg.content)")
         }
     }
 }
 
 client.on(.messageCreate) { data in
     if let msg = data as? Message {
+        
         let content = msg.content.lowercased()
         
         if let _ = msg.author?.isBot { return }
@@ -74,16 +67,6 @@ client.on(.messageCreate) { data in
         
         if content.contains("<@\(PrivateVariables.botID)>"), content.hasSuffix("-currentprefix") {
             msg.reply(with: "현재 Prefix는 `\(Prefix)`에요!")
-        }
-        
-        if msg.content.contains("히토미") || msg.content.lowercased().contains("hitomi") {
-            msg.add(reaction: "\\:hitomi:337513243859746816") { print($0 as Any) }
-        }
-        
-        if msg.content.characters.contains("미"), msg.content.characters.contains("쿠")
-            || msg.content.lowercased().contains("miku")
-            || msg.content.contains("39") {
-            msg.add(reaction: "\\:nadenade:337525787907588097") { print($0 as Any) }
         }
         
         if msg.content.contains("| -serin --d ") {
@@ -110,6 +93,23 @@ client.on(.messageCreate) { data in
             }
         }
         
+        if content == Prefix + "voice" {
+            client.joinVoiceChannel(ChannelID("256335976450883584")!) { connection in
+                client.deadline(of: 1.5).do {
+                    DispatchQueue.main.asyncAfter(deadline: $0) {
+                        print(connection.guildId, connection.isPlaying, connection.listeners)
+                        connection.play(Youtube("https://www.youtube.com/watch?v=dv13gl0a-FA").process)
+                    }
+                }
+            }
+            msg.add(reaction: "✅")
+        }
+        
+        if content == Prefix + "leave" {
+            client.leaveVoiceChannel(ChannelID("256335976450883584")!)
+            msg.add(reaction: "✅")
+        }
+        
         // uwu
         if content == Prefix + "uwu"    { msg.channel.send("uwu") }
         // 농담
@@ -118,7 +118,7 @@ client.on(.messageCreate) { data in
         // 오버래피드 서버 검증
         if content == Prefix + "orvalidation" {
             msg.channel.send(Texts.chooseOne(from: messages.validationStart)) { org, _ in
-                function.checkServers {
+                checkServers {
                     org?.delete()
                     print($0)
                     let embedData: [String:Any] = ["title":"OverRapid Validation Server Status",
@@ -132,7 +132,7 @@ client.on(.messageCreate) { data in
         
         // 집 서버 검증
         if content == Prefix + "cenoxvalidation" {
-            function.checkCenoXServer { msg.reply(with: $0 ? "아빠 서버는 지금 죽은 것 같아요 ㅠㅠㅠ" : "아빠 서버는 지금 살아있어요!") }
+            checkCenoXServer { msg.reply(with: $0 ? "아빠 서버는 지금 죽은 것 같아요 ㅠㅠㅠ" : "아빠 서버는 지금 살아있어요!") }
         }
         
         // 소전 경험치 계산
@@ -144,13 +144,17 @@ client.on(.messageCreate) { data in
                         msg.reply(with: "`\(Prefix)gfexp 기준 to 어디까지`의 형식으로 입력해주세요!\nex)`\(Prefix)gfexp 1 to 30`")
                         return
                 }
-                let result = PrivateVariables.calcExp(from: first, to: second - 1)
+                let result = calcExp(from: first, to: second - 1)
                 if result.isError {
                     msg.reply(with: "DEBUG MESSAGE - \(first), \(second), \(result)")
                     print("DEBUG MESSAGE - \(first), \(second), \(result)")
                     msg.reply(with: "계산에 실패했어요. 값이 잘못되지 않았는지 확인해주세요.")
                 } else {
-                    msg.reply(with: "\(first) 레벨부터 \(second) 레벨이 되기 위해서는 총 \(result.totalExp)가 필요해요!")
+                    let numberOfItem = result.totalExp / 3000 + 1
+                    let fields: [[String:Any]] = [["name":"**필요 경험치**",   "value":"\(result.totalExp)"],
+                                                  ["name":"**필요 작전보고서**",   "value":"\(numberOfItem)"]]
+                    let desc = "레벨 \(first)부터 레벨 \(second)까지 필요한 경험치 정보를 가져왔어요!\n필요한 작전보고서의 갯수는, 필요경험치/3000 + 1로 계산했어요!"
+                    msg.channel.send(["embed":makeEmbed(with: fields, description: desc)])
                 }
             } else {
                 msg.reply(with: "`\(Prefix)gfexp 기준 to 어디까지`의 형식으로 입력해주세요!\nex)`\(Prefix)gfexp 1 to 30`")
@@ -179,12 +183,12 @@ client.on(.messageCreate) { data in
                         return
                     }
                     if let messages = $0 {
-                        messages.forEach { $0.delete() }
-                        msg.add(reaction: "✅")
+                        let ids = messages.flatMap { $0.id }
+                        client.deleteMessages(ids, from: msg.channel.id)
                     }
                 }
             } else {
-                msg.reply(with: "시간을 모르겠어, 다시 이야기해줘")
+                msg.reply(with: "갯수를 모르겠어, 다시 이야기해줘")
             }
         }
         
@@ -254,10 +258,9 @@ client.on(.messageCreate) { data in
             // 봇 끄기
             if content == prefix + "halt" {
                 msg.reply(with: "봇 종료 명령어 확인. 나중에봐!")
-                client.disconnect()
                 client.deadline(of: 3.0).do {
-                    sema.signal()
                     DispatchQueue.main.asyncAfter(deadline: $0) {
+                        client.disconnect()
                         exit(0)
                     }
                 }
@@ -311,22 +314,7 @@ client.on(.messageCreate) { data in
                                               ["name":"**Host Name**",          "value":"\(Sysctl.hostName)"],
                                               ["name":"**Total RAM**",          "value":"\(Sysctl.memSize / 1024 / 1024)MB"],
                                               ["name":"**Kernel**",             "value":"\(Sysctl.version)"]]
-                
-                let formatter = DateFormatter().then {
-                    $0.timeZone = TimeZone(secondsFromGMT: 9)
-                    $0.dateFormat = "yyyy-MM-dd HH:mm:ss"
-                }
-                
-                let embedData: [String:Any] = ["title":"**Serin BoT**\n",
-                                               "footer":["icon_url":client.user?.avatarUrl(format: .png),
-                                                         "text":"Developed by CenoX"],
-                                               "timestamp":formatter.string(from: Date()),
-                                               "color":0x65b3e6,
-                                               "description":"ported to Swift version",
-                                               "fields":fields,
-                                               "url":"https://cenox.co/serin.html"]
-                
-                msg.channel.send(["embed":embedData])
+                msg.channel.send(["embed":makeEmbed(with: fields)])
             }
             
             if content == prefix + "uptime" {
@@ -336,11 +324,11 @@ client.on(.messageCreate) { data in
                     $0.timeZone = TimeZone(secondsFromGMT: 0)
                     $0.dateFormat = "HH:mm:ss"
                 }
-                msg.channel.send("나는 지금 \(formatter.string(from: date)) 동안 켜져있었어!")
+                let fields: [[String:Any]] = [["name":"**Current uptime**",   "value":"\(formatter.string(from: date))"]]
+                msg.channel.send(["embed":makeEmbed(with: fields)])
             }
         }
     }
 }
 
 client.connect()
-sema.wait()

@@ -50,6 +50,7 @@ client.on(.messageCreate) {
     if let msg = $0 as? Message {
         if msg.content.hasPrefix(Prefix) {
             print("Input: \(msg.content)")
+            print("Author: \(msg.author?.id as Any)")
         }
     }
 }
@@ -94,19 +95,13 @@ client.on(.messageCreate) { data in
         }
         
         if content == Prefix + "voice" {
-            client.joinVoiceChannel(ChannelID("256335976450883584")!) { connection in
-                client.deadline(of: 1.5).do {
-                    DispatchQueue.main.asyncAfter(deadline: $0) {
-                        print(connection.guildId, connection.isPlaying, connection.listeners)
-                        connection.play(Youtube("https://www.youtube.com/watch?v=dv13gl0a-FA").process)
-                    }
-                }
+            client.joinVoiceChannel(PrivateVariables.meuVoiceChatID) { connection in
             }
             msg.add(reaction: "✅")
         }
         
         if content == Prefix + "leave" {
-            client.leaveVoiceChannel(ChannelID("256335976450883584")!)
+            client.leaveVoiceChannel(PrivateVariables.meuVoiceChatID)
             msg.add(reaction: "✅")
         }
         

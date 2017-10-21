@@ -7,6 +7,12 @@ import SwiftyJSON
 
 extension DispatchTime: Then {}
 extension SecureElements: Then {}
+extension Message: Then {}
+
+/*
+ TODO: 사용 가능한 명령어를 바로 정리할 수 있게 하는 것을 만들어야함 ( how )
+ FIXME: 보이스 챗 들어와도 아무것도 못하는거 고치세여;;
+ */
 
 let dateFormatter = DateFormatter().then {
     $0.dateFormat = "yyyy-MM-dd HH:mm:ss Z"
@@ -47,153 +53,117 @@ client.on(.ready) { [unowned client] _ in
 }
 
 client.on(.messageCreate) {
-    if let msg = $0 as? Message {
-        if msg.content.hasPrefix(Prefix) {
-            print("Input: \(msg.content)")
-            print("Author: \(msg.author?.id as Any)")
-        }
+    guard let msg = $0 as? Message else { return }
+    if msg.content.hasPrefix(Prefix) {
+        print("Input: \(msg.content)")
+        print("Author: \(msg.author?.id as Any) isBot: \(msg.author?.isBot ?? false)")
     }
 }
 
 client.on(.messageCreate) { data in
-    if let msg = data as? Message {
-        
-        let content = msg.content.lowercased()
-        
-        if let _ = msg.author?.isBot { return }
-        
-        if content == "<@\(PrivateVariables.botID)>" {
-            msg.reply(with: Texts.chooseOne(from: messages.hello))
+    guard let msg = data as? Message else { return }
+    
+    let content = msg.content.lowercased()
+    
+    if let _ = msg.author?.isBot { return }
+    
+    if content == "<@\(PrivateVariables.botID)>" {
+        msg.reply(with: Texts.chooseOne(from: messages.hello))
+    }
+    
+    if content.contains("<@\(PrivateVariables.botID)>"), content.hasSuffix("-currentprefix") {
+        msg.reply(with: "현재 Prefix는 `\(Prefix)`에요!")
+    }
+    
+    // ===== 일반 명령어 정의 구간 ===== //
+    // 도움말 표시
+    if content.hasPrefix(Prefix + "help") {
+        if let arg = content.components(separatedBy: Prefix + "help ").last {
+            msg.channel.send(HelpIndex(rawValue: arg).docs())
+        } else if content == Prefix + "help" {
+            msg.channel.send(HelpIndex(rawValue: "unknown").docs())
         }
-        
-        if content.contains("<@\(PrivateVariables.botID)>"), content.hasSuffix("-currentprefix") {
-            msg.reply(with: "현재 Prefix는 `\(Prefix)`에요!")
-        }
-        
-        if msg.content.contains("| -serin --d ") {
-            if  let original = msg.content.components(separatedBy: "| -serin --d ").first,
-                let time = msg.content.components(separatedBy: "| -serin --d ").last,
-                let toInt = Int(time) {
-                
-                msg.delete()
-                msg.channel.send(original) { message, _ in
-                    DispatchQueue.main.asyncAfter(deadline: client.deadline(of: Double(toInt))) {
-                        message?.delete()
-                    }
-                }
+    }
+    
+    // uwu
+    if content == Prefix + "uwu"    { msg.channel.send("\(content) uwu") }
+    // 농담
+    if content == Prefix + "joke"   { msg.channel.send(Texts.chooseOne(from: messages.jokes)) }
+    
+    // 오버래피드 서버 검증
+    if content == Prefix + "orvalidation" {
+        msg.channel.send(Texts.chooseOne(from: messages.validationStart)) { org, _ in
+            checkServers {
+                org?.delete()
+                print($0)
+                let embedData: [String:Any] = ["title":"OverRapid Validation Server Status",
+                                               "color":0x65b3e6,
+                                               "description":Texts.chooseOne(from: messages.validationResult),
+                                               "fields":$0]
+                msg.channel.send(["embed":embedData])
             }
         }
-        
-        // ===== 일반 명령어 정의 구간 ===== //
-        // 도움말 표시
-        if  content.hasPrefix(Prefix + "help") {
-            if let arg = content.components(separatedBy: Prefix + "help ").last {
-                msg.channel.send(HelpIndex(rawValue: arg).docs())
-            } else if content == Prefix + "help" {
-                msg.channel.send(HelpIndex(rawValue: "unknown").docs())
+    }
+    
+    // 집 서버 검증
+    if content == Prefix + "cenoxvalidation" {
+        checkCenoXServer { msg.reply(with: $0 ? "아빠 서버는 지금 죽은 것 같아요 ㅠㅠㅠ" : "아빠 서버는 지금 살아있어요!") }
+    }
+    
+    // 소전 경험치 계산
+    if content.hasPrefix(Prefix + "gfexp") {
+        if let value = content.components(separatedBy: "\(Prefix)gfexp").last?.components(separatedBy: "to"),
+            value.count == 2 {
+            guard let first = Int(value[0].trimmingCharacters(in: .whitespaces)),
+                let second = Int(value[1].trimmingCharacters(in: .whitespaces)) else {
+                    msg.reply(with: "`\(Prefix)gfexp 기준 to 어디까지`의 형식으로 입력해주세요!\nex)`\(Prefix)gfexp 1 to 30`")
+                    return
             }
-        }
-        
-        if content == Prefix + "voice" {
-            client.joinVoiceChannel(PrivateVariables.meuVoiceChatID) { connection in
-            }
-            msg.add(reaction: "✅")
-        }
-        
-        if content == Prefix + "leave" {
-            client.leaveVoiceChannel(PrivateVariables.meuVoiceChatID)
-            msg.add(reaction: "✅")
-        }
-        
-        // uwu
-        if content == Prefix + "uwu"    { msg.channel.send("uwu") }
-        // 농담
-        if content == Prefix + "joke"   { msg.channel.send(Texts.chooseOne(from: messages.jokes)) }
-        
-        // 오버래피드 서버 검증
-        if content == Prefix + "orvalidation" {
-            msg.channel.send(Texts.chooseOne(from: messages.validationStart)) { org, _ in
-                checkServers {
-                    org?.delete()
-                    print($0)
-                    let embedData: [String:Any] = ["title":"OverRapid Validation Server Status",
-                                                   "color":0x65b3e6,
-                                                   "description":Texts.chooseOne(from: messages.validationResult),
-                                                   "fields":$0]
-                    msg.channel.send(["embed":embedData])
+            let result = calcExp(from: first, to: second - 1)
+            if result.isError {
+                msg.do {
+                    $0.reply(with: "DEBUG MESSAGE - \(first), \(second), \(result)")
+                    $0.reply(with: "계산에 실패했어요. 값이 잘못되지 않았는지 확인해주세요.")
                 }
-            }
-        }
-        
-        // 집 서버 검증
-        if content == Prefix + "cenoxvalidation" {
-            checkCenoXServer { msg.reply(with: $0 ? "아빠 서버는 지금 죽은 것 같아요 ㅠㅠㅠ" : "아빠 서버는 지금 살아있어요!") }
-        }
-        
-        // 소전 경험치 계산
-        if content.hasPrefix(Prefix + "gfexp") {
-            if let value = content.components(separatedBy: "\(Prefix)gfexp").last?.components(separatedBy: "to"),
-                value.count == 2 {
-                guard let first = Int(value[0].trimmingCharacters(in: .whitespaces)),
-                    let second = Int(value[1].trimmingCharacters(in: .whitespaces)) else {
-                        msg.reply(with: "`\(Prefix)gfexp 기준 to 어디까지`의 형식으로 입력해주세요!\nex)`\(Prefix)gfexp 1 to 30`")
-                        return
-                }
-                let result = calcExp(from: first, to: second - 1)
-                if result.isError {
-                    msg.reply(with: "DEBUG MESSAGE - \(first), \(second), \(result)")
-                    print("DEBUG MESSAGE - \(first), \(second), \(result)")
-                    msg.reply(with: "계산에 실패했어요. 값이 잘못되지 않았는지 확인해주세요.")
-                } else {
-                    let numberOfItem = result.totalExp / 3000 + 1
-                    let fields: [[String:Any]] = [["name":"**필요 경험치**",   "value":"\(result.totalExp)"],
-                                                  ["name":"**필요 작전보고서**",   "value":"\(numberOfItem)"]]
-                    let desc = "레벨 \(first)부터 레벨 \(second)까지 필요한 경험치 정보를 가져왔어요!\n필요한 작전보고서의 갯수는, 필요경험치/3000 + 1로 계산했어요!"
-                    msg.channel.send(["embed":makeEmbed(with: fields, description: desc)])
-                }
+                print("DEBUG MESSAGE - \(first), \(second), \(result)")
             } else {
-                msg.reply(with: "`\(Prefix)gfexp 기준 to 어디까지`의 형식으로 입력해주세요!\nex)`\(Prefix)gfexp 1 to 30`")
+                let numberOfItem = result.totalExp / 3000 + 1
+                let fields: [[String:Any]] = [["name":"**필요 경험치**",   "value":"총 \(result.totalExp)경험치"],
+                                              ["name":"**필요 작전보고서**",   "value":"약 \(numberOfItem)개"]]
+                let desc = "레벨 \(first)부터 레벨 \(second)까지 필요한 경험치 정보를 가져왔어요!\n필요한 작전보고서의 갯수는, 필요경험치/3000 + 1로 계산했어요!"
+                msg.channel.send(["embed":makeEmbed(with: fields, description: desc)])
             }
+        } else {
+            msg.reply(with: "`\(Prefix)gfexp 기준 to 어디까지`의 형식으로 입력해주세요!\nex)`\(Prefix)gfexp 1 to 30`")
         }
-        
-        if content == Prefix + "숙청" {
-            let param: [String:Any] = ["delete-message-days":7]
-            client.ban(PrivateVariables.banUser1, from: msg.channel.id, for: "너도 아는 누군가가 너랑 엮이기 싫데요!", with: param) { err in
-                if let error = err {
-                    msg.reply(with: error.message)
-                } else {
-                    
+    }
+    
+    if content.hasPrefix(Prefix + "rm") {
+        if  let component = msg.content.components(separatedBy: "rm ").last,
+            let count = Int(component) {
+            let params: [String : Any] = ["limit"   :count,
+                                          "before"  :msg.id]
+            client.getMessages(from: msg.channel.id, with: params) {
+                if let error = $1 {
+                    msg.reply(with: "처리하는데 오류가 발생했어.\n\(error.localizedDescription)")
+                    return
+                }
+                if let messages = $0 {
+                    let ids = messages.flatMap { $0.id }
+                    client.deleteMessages(ids, from: msg.channel.id)
                 }
             }
+        } else {
+            msg.reply(with: "갯수를 모르겠어, 다시 이야기해줘")
         }
-        
-        if content.hasPrefix(Prefix + "rm") {
-            if  let component = msg.content.components(separatedBy: "rm ").last,
-                let count = Int(component) {
-                let params: [String : Any] = ["limit"   :count,
-                                              "before"  :msg.id]
-                client.getMessages(from: msg.channel.id, with: params) {
-                    if let error = $1 {
-                        msg.reply(with: "처리하는데 오류가 발생했어.\n\(error.localizedDescription)")
-                        return
-                    }
-                    if let messages = $0 {
-                        let ids = messages.flatMap { $0.id }
-                        client.deleteMessages(ids, from: msg.channel.id)
-                    }
-                }
-            } else {
-                msg.reply(with: "갯수를 모르겠어, 다시 이야기해줘")
-            }
-        }
-        
-        // 말 따라하기 || 말 대신 하기
-        if content.hasPrefix(Prefix + "say") || content.hasPrefix(Prefix + "dsay") {
-            if content.hasPrefix(Prefix + "dsay") { msg.delete() }
-            msg.channel.send(
-                content.replacingOccurrences(of: content.hasPrefix(Prefix + "dsay") ? Prefix + "dsay" : Prefix + "say", with: "")
-            )
-        }
+    }
+    
+    // 말 따라하기 || 말 대신 하기
+    if content.hasPrefix(Prefix + "say") || content.hasPrefix(Prefix + "dsay") {
+        if content.hasPrefix(Prefix + "dsay") { msg.delete() }
+        msg.channel.send(
+            content.replacingOccurrences(of: content.hasPrefix(Prefix + "dsay") ? Prefix + "dsay" : Prefix + "say", with: "")
+        )
     }
 }
 
@@ -212,6 +182,7 @@ client.on(.messageCreate) { data in
                     let args = ["-c", contents]
                     let pipe = Pipe()
                     let file = pipe.fileHandleForReading
+                    file.waitForDataInBackgroundAndNotify()
                     
                     let task = Process().then {
                         $0.launchPath = "/bin/sh"
@@ -220,15 +191,52 @@ client.on(.messageCreate) { data in
                         $0.standardError = pipe
                     }
                     
-                    task.launch()
-                    
-                    let data = file.readDataToEndOfFile()
-                    if let output = String(data: data, encoding: .utf8) {
-                        msg.channel.send(output)
+                    var progressObserver : NSObjectProtocol!
+                    progressObserver = NotificationCenter.default.addObserver(
+                        forName: NSNotification.Name.NSFileHandleDataAvailable,
+                        object: file, queue: nil)
+                    {
+                        notification -> Void in
+                        let data = file.availableData
+                        
+                        if data.count > 0 {
+                            if let str = String(data: data, encoding: String.Encoding.utf8) {
+                                msg.channel.send(str)
+                            }
+                            file.waitForDataInBackgroundAndNotify()
+                        } else {
+                            NotificationCenter.default.removeObserver(progressObserver)
+                        }
                     }
+                    
+                    var terminationObserver : NSObjectProtocol!
+                    terminationObserver = NotificationCenter.default.addObserver(
+                        forName: Process.didTerminateNotification,
+                        object: task, queue: nil)
+                    {
+                        notification -> Void in
+                        let formatter = DateFormatter().then {
+                            $0.timeZone = TimeZone(secondsFromGMT: 9)
+                            $0.dateFormat = "yyyy-MM-dd HH:mm:ss"
+                        }
+                        let embedData: [String:Any] = ["title":"**Serin BoT**\n",
+                                                       "footer":["icon_url":client.user?.avatarUrl(format: .png),
+                                                                 "text":"Developed by CenoX"],
+                                                       "timestamp":formatter.string(from: Date()),
+                                                       "color":0x65b3e6,
+                                                       "description":"Process Ends!",
+                                                       "url":"https://cenox.co/serin.html"]
+                        msg.channel.send(["embed":embedData]) { msg, error in
+                            DispatchQueue.main.asyncAfter(deadline: client.deadline(of: 1.0)) {
+                                msg?.delete()
+                            }
+                        }
+                        NotificationCenter.default.removeObserver(terminationObserver)
+                    }
+                    
+                    task.launch()
                 }
             }
-            
             
             // 플레이 중 변경
             if content == prefix + "changegame" {

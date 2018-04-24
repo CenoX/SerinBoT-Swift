@@ -40,7 +40,7 @@ client.on(.ready) { [unowned client] _ in
     DispatchQueue.main.asyncAfter(deadline: client.deadline(of: 1.0)) {
         if #available(OSX 10.12, *) {
             continuousAction()
-            client.getChannel(for: PrivateVariables.meuChatID)?.send(message)
+            client.getChannel(for: PrivateVariables.logChatID)?.send(message)
             timer = Timer.scheduledTimer(withTimeInterval: 600, repeats: true) { _ in continuousAction() }
             Timer.scheduledTimer(withTimeInterval: 7200, repeats: true) { _ in
                 client.disconnect()

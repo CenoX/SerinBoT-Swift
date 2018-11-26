@@ -17,7 +17,6 @@ struct Texts {
     let commonHelp =
     "```js\n" +
     "== 기본 명령어 ==\n\n" +
-    "`할말` \"| -serin --d\" `시간(초)` 메세지를 보낸 후, d 뒤에 정의한 시간 뒤에 메세지를 지워요.\n\n" +
     "`help` - 이 메세지를 보내요!\n\n" +
     "`uwu` - uwu\n\n" +
     "`joke` - 어디에서 많이 들어봤을 법한 대사들로 농담을 해요!\n\n" +
@@ -62,7 +61,7 @@ struct Texts {
     "혹시나 설정한 Prefix 를 잊어버렸다면, `@Serin BoT -currentPrefix` 명령어로 확인할 수 있어요!\n\n" +
     "비공개된 문자열 혹은 이모티콘에 대해 자동으로 리액션을 추가해주기도 해요.\n\n" +
     "`s!help [type]` 으로 좀 더 상세한 명령어를 확인할 수 있어요!\n\n\n" +
-    "**common** - `| -serin --d 시간(초)` `help` `uwu` `joke` `orvalidation` `say` `dsay` `rm` `gfexp strat to destination`\n\n" +
+    "**common** - `help` `uwu` `joke` `orvalidation` `say` `dsay` `rm` `gfexp strat to destination`\n\n" +
     "**papa** - `exec` `changegame` `timerInvalidate` `timerReset 시간` `changePrefix` `resetPrefix` `halt`\n\n" +
     "**dev** - `version` `info` `reaction` `uptime`"
 
@@ -91,7 +90,7 @@ struct Texts {
     "혼란하다 혼란해",
     "1딸라는 너무 적소. 대충 사딸라 쯤 합시다.",
     "드디어 올 것이 왔네요!",
-    "はいぃ!どもバーチャル娘、セリンです!",
+    "はいぃ!どもーバーチャル娘、セリンです!",
     "하-이 도--모 버챠루 무스메 세린데스!",
     "다들 꼼짝마! 내가 지금 당장 탱크를 몰고와서 홍현이를 다 밀어버리겠어!"
     ]
